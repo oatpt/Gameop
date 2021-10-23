@@ -53,7 +53,7 @@ void Death::Update(float deltaTime,float speed,bool fall)
 		velocity += 0.981f * deltaTime;
 	else
 		velocity = 0.0f;
-	body.move(-speed, velocity);
+	body.move(-speed * deltaTime, velocity);
 	if (body.getPosition().y > 820.0f)
 		body.setPosition(sf::Vector2f(body.getPosition().x, 820.0f));
 	

@@ -5,7 +5,7 @@ class Background
 public:
 	Background(sf::Texture* texture,float switchTime);
 	~Background();
-	void Update(float deltaTime);
+	void Update(float deltaTime, float acc);
 	void Draw(sf::RenderWindow& window);
 	sf::RectangleShape body;
 	sf::IntRect uvRect;

@@ -23,6 +23,7 @@
     <ClCompile Include="Background.cpp" />
     <ClCompile Include="Collider.cpp" />
     <ClCompile Include="Death.cpp" />
+    <ClCompile Include="Enagy.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Platform.cpp" />
@@ -35,6 +36,7 @@
     <ClInclude Include="Background.h" />
     <ClInclude Include="Collider.h" />
     <ClInclude Include="Death.h" />
+    <ClInclude Include="Enagy.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Platform.h" />
     <ClInclude Include="Player.h" />

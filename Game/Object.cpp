@@ -12,9 +12,9 @@ Object::Object(sf::Texture* texture, sf::Vector2f size,float Hight)
 Object::~Object()
 {
 }
-void Object::Update(float speed)
+void Object::Update(float speed,float deltaTime)
 {
-	body.move(-speed, 0.0f);
+	body.move(-speed*deltaTime, 0.0f);
 }
 
 void Object::Draw(sf::RenderWindow& window)

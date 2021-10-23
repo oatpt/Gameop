@@ -18,6 +18,7 @@
 #include <utility>
 #include <algorithm>
 #include <string.h>
+#include "Enagy.h"
 using namespace std;
 static const float VIEW_HEIGHT = 1080.0f;
 static const float VIEW_WIDTH = 1920.0f;
@@ -86,12 +87,21 @@ int main()
         monter2.loadFromFile("pic/monter2.png");
     sf::Texture red;
         red.loadFromFile("pic/redscreen.png");
+    sf::Texture blurtt;
+        blurtt.loadFromFile("pic/buar.png");
+    sf::Texture resumett;
+        resumett.loadFromFile("pic/resume.png");
+    sf::Texture quittt;
+        quittt.loadFromFile("pic/quit.png");
+    sf::Texture enagytt;
+        enagytt.loadFromFile("pic/enagy.png");
     sf::Font font;
         font.loadFromFile("font/itim.ttf");
     sf::Clock clock;
     sf::Vector2f direction;
     
     int status_game = 1;
+    int pause = 0,go_stasus=0;
     int temp,temp_score;
     int score = 0;
     int energy = 100;
@@ -102,18 +112,21 @@ int main()
     float survivalTime = 0.0f;
     float acc = 0.0f;
     float bloodtime = -1.0f;
+    float pausetime = 0.0f;
+    float go = 0.0f;
     int countitem = 0;
     int onedead;
     int kmode;
     string showscore;
     string name;
-    vector <Score> Scores,energys;
+    vector <Score> Scores;
+    vector <Enagy> energys;
     deque <Object> coinsS, coinsM, coinsL, enemys,item1;
 
     for (int i = 0; i < 5; i++)   
         Scores.push_back(Score(&num,sf::Vector2f(1850.0f-i*80.0f, 100.0f)));  
-    for (int i = 0; i < 3; i++)
-        energys.push_back(Score(&num, sf::Vector2f(300.0f - i * 80.0f, 100.0f)));
+    for (int i = 0; i < 5; i++)
+        energys.push_back(Enagy(&enagytt, sf::Vector2f(100.0f + i * 160.0f, 100.0f)));
     
     Player player(&playerTexture, sf::Vector2u(8, 1), 0.2f, 300.0f,300.0f);
     Slide playerSlide(&slide, sf::Vector2u(5, 1), 0.2f, 300.0f);
@@ -136,6 +149,10 @@ int main()
     Platform stand(&standTT, sf::Vector2f(320.0f, 400.0f), sf::Vector2f(1400.0f, 500.0f));
     Platform monmenu(&monter2, sf::Vector2f(320.0f, 400.0f), sf::Vector2f(1400.0f, 500.0f));
     Platform reds(&red, sf::Vector2f(1920.0f, 1080.0f), sf::Vector2f(1920.0f/2, 1080.0f/2));
+    Platform resume(&resumett, sf::Vector2f(300.0f, 130.0f), sf::Vector2f(VIEW_WIDTH / 2.0f, 400.0f));
+    Platform quit(&quittt, sf::Vector2f(300.0f, 130.0f), sf::Vector2f(VIEW_WIDTH / 2.0f, 600.0f));
+    Platform blur(&blurtt, sf::Vector2f(VIEW_WIDTH, VIEW_HEIGHT), sf::Vector2f(VIEW_WIDTH / 2.0f, VIEW_HEIGHT / 2.0f));
+    Platform Pause(&mainbg, sf::Vector2f(VIEW_WIDTH/2.0f, VIEW_HEIGHT / 2.0f), sf::Vector2f(VIEW_WIDTH / 2.0f, VIEW_HEIGHT / 2.0f));
     Death mondeath(&monterdeath, sf::Vector2f(160.0f, 200.0f), sf::Vector2u(7, 1), 0.15f);
     Death pdeath(&DPTT, sf::Vector2f(310.0f, 230.0f), sf::Vector2u(10, 1), 0.2f);
     
@@ -170,6 +187,8 @@ int main()
         if (status_game == 1)
         {
             stand.UpdateP(deltaTime);
+            go = 0.0f;
+            go_stasus = 0;
             score = 0;
             energy = 0;
             sumTime = 0.0f;
@@ -178,6 +197,7 @@ int main()
             survivalTime = 0.0f;
             countitem = 0;
             onedead = 0;
+            pause = 0;
             player.setpositison(sf::Vector2f(200.0f, 800.0f));
             playerSlide.setpositison(sf::Vector2f(200.0f, 1500.0f));
             int x = sf::Mouse::getPosition().x;
@@ -204,20 +224,23 @@ int main()
                 status_game = 3;
                 energy = 100;
                 kmode = 0;
+                score = 0;
             }
             else if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && x >= 105.0f && x <= 495.0f && y >= 315.0f && y <= 485.0f)
             {
-                acc = 0.1f;
+                acc = 500.0f;
                 status_game = 3;
                 energy = 100;
                 kmode = 10;
+                score = 100;
             }
             else if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && x >= 105.0f && x <= 495.0f && y >= 515.0f && y <= 685.0f)
             {
-                acc = 0.2f;
+                acc = 1000.0f;
                 status_game = 3;
                 energy = 100;
                 kmode = 20;
+                score = 200;
             }
             else if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && x >= 105.0f && x <= 495.0f && y >= 715.0f && y <= 885.0f)
                 status_game = 1;
@@ -247,11 +270,49 @@ int main()
             }
             while (sf::Mouse::isButtonPressed(sf::Mouse::Left));
         }
-        if (bloodtime >= 0.0f)
+        //หยุดเกม
+        pausetime += deltaTime;
+        if (pause)
+        {
+            int x = sf::Mouse::getPosition().x;
+            int y = sf::Mouse::getPosition().y;
+            if (!go_stasus && pausetime >= 0.5f &&( sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)||sf::Mouse::isButtonPressed(sf::Mouse::Left) && x >= VIEW_WIDTH / 2.0f - 150.0f && x <= VIEW_WIDTH / 2.0f + 150.f && y >= 335.0f && y <= 465.0f))
+            {
+                go = 3.0f;
+                go_stasus = 1;
+                
+            }
+            else if (!go_stasus && sf::Mouse::isButtonPressed(sf::Mouse::Left) && x >= VIEW_WIDTH / 2.0f - 150.0f && x <= VIEW_WIDTH / 2.0f + 150.f && y >= 535.0f && y <= 665.0f)
+            {
+                status_game = 1;
+                pause = 0;
+                pausetime = 0.0f;
+            }
+            if (go_stasus)
+            {
+                if (go >= 0.0f)
+                {
+                    go -= deltaTime;
+                }
+                else
+                {
+                    go = 0.0f;
+                    go_stasus = 0;
+                    pause = 0;
+                    pausetime = 0.0f;
+                }
+            }
+        }
+        else if (pausetime >= 0.5f && sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+        {
+            pause = 1;
+            pausetime = 0.0f;
+        }
+        if (!pause && bloodtime >= 0.0f)
             bloodtime += deltaTime;
-        if (bloodtime >= 1.5f)
+        if (!pause && bloodtime >= 1.0f)
             bloodtime = -1.0f;
-        if (energy>0)
+        if (!pause && energy>0)
         { 
             sumTime += deltaTime;
             scoreTime += deltaTime;
@@ -259,20 +320,20 @@ int main()
             survivalTime += deltaTime;
         }
         //ลดพลังงานต่อวิ
-        if (energy > 0 && survivalTime >= 20.0f)
+        if (!pause && energy > 0 && survivalTime >= 20.0f)
         {
             survivalTime -= 20.0f;
             energy-=5;
         }
         //สุ่มเกิดอุปสรรค
-        if (energy > 0 && EnemyTime >= 5.0f)
+        if (!pause && energy > 0 && EnemyTime >= 5.0f)
         {
             EnemyTime -= 5.0f;
             enemys.push_back(Object(&monter, sf::Vector2f(160.0f, 200.0f), 150.0f));
             sumTime -= 0.5f;
         }
         //สุ่มเกิดของ
-        else if (energy > 0 && sumTime >= 0.5f&& EnemyTime <= 4.75f&& EnemyTime >= 0.25)
+        else if (!pause && energy > 0 && sumTime >= 0.5f&& EnemyTime <= 4.75f&& EnemyTime >= 0.25)
         {
             sumTime -= 0.5f;
             int x = rand() % 11;
@@ -289,43 +350,43 @@ int main()
             }
             else
                 coinsS.push_back(Object(&s, sf::Vector2f(50.0f, 50.0f), 0.0f));
-            if (acc <= 0.25)
-                acc += 0.00005;
+            if (acc <= 5000)
+                acc += 10;
             countitem++;
         }
         //เพิ้มคะแนนต่อวิ
-        if (energy > 0 && scoreTime >= 0.5f)
+        if (!pause && energy > 0 && scoreTime >= 0.5f)
         {
             scoreTime -= 0.5f;
             score++;
         }  
         //mondeath
-        if (mondeath.end == 1)
+        if (!pause && mondeath.end == 1)
         {
             if(energy > 0)
-                mondeath.Update(deltaTime, 0.3f + acc,false);
+                mondeath.Update(deltaTime, 300.0f + acc,false);
             else 
                 mondeath.Update(deltaTime, 0.0f, false);
         }
         //updategame
-        if (energy > 0)
+        if (!pause && energy > 0)
         {
             
-            player.Update(deltaTime, acc);
-            playerSlide.Update(deltaTime,player.slide(), player.delays(), acc);
+            player.Update(deltaTime, acc / 2.0f);
+            playerSlide.Update(deltaTime,player.slide(), player.delays(), acc / 2.0f);
             for (Object& item : item1)
-                item.Update(0.3f + acc);
+                item.Update(300.0f + acc, deltaTime);
             for (Object& coin : coinsL)
-                coin.Update(0.3f+acc);
+                coin.Update(300.0f+acc, deltaTime);
             for (Object& coin : coinsM)
-                coin.Update(0.3f + acc);
+                coin.Update(300.0f + acc, deltaTime);
             for (Object& coin : coinsS)
-                coin.Update(0.3f + acc);
+                coin.Update(300.0f + acc, deltaTime);
             for (Object& enemy : enemys)
-                enemy.Update(0.3f + acc);
+                enemy.Update(300.0f + acc, deltaTime);
             
         
-            Bg.Update(deltaTime);
+            Bg.Update(deltaTime,acc);
         //platform1.body.setTextureRect(oj1.uvRect);
         
         //เช็คการชน
@@ -389,10 +450,15 @@ int main()
             temp = energy;
             if (temp < 0)
                 temp = 0;
-            for (Score& Energy : energys)
+            for (Enagy& a : energys)
             {
-                Energy.Update(temp % 10);
-                temp /= 10;
+                if (temp >= 20)
+                    a.Update(20 / 5);
+                else if(temp >= 0)
+                    a.Update(temp / 5);
+                else
+                    a.Update(0);
+                temp -= 20;
             }
         }
         //gameover
@@ -478,7 +544,7 @@ int main()
            monmenu.Draw(window);
        }
        else if (status_game == 3 )//ปริ้นเกม
-       {
+       {  
             Bg.Draw(window);
             stage.Draw(window);
             for (Object& item : item1)
@@ -506,10 +572,31 @@ int main()
 
             for (Score& score : Scores)
                 score.Draw(window);
-            for (Score& Energy : energys)
-                Energy.Draw(window);
+            for (Enagy& a : energys)
+                a.Draw(window);
             if(bloodtime>=0.0f&& bloodtime<=0.25f|| bloodtime >= 0.5f && bloodtime <= 0.75f || bloodtime >= 1.0f && bloodtime <= 1.25f )
                 reds.Draw(window);
+            if (pause)
+            {
+                if (go_stasus)
+                {
+                    if(go>=2.0f)
+                        Showtexet(900 , 300, "3", 400, window, &font);
+                    else if (go >= 1.0f)
+                        Showtexet(900, 300, "2", 400, window, &font);
+                    else if (go >= 0.5f)
+                        Showtexet(900, 300, "1", 400, window, &font);
+                    else if (go >= 0.0f)
+                        Showtexet(1200 / 2.0f, 300, "Go!!!", 400, window, &font);
+                }
+                else
+                {
+                    blur.Draw(window);
+                    Pause.Draw(window);
+                    quit.Draw(window);
+                    resume.Draw(window);
+                }
+            }
        }
        else if (status_game == 4)
        {
