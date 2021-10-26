@@ -1,12 +1,12 @@
 #include "Object.h"
 #include <time.h>
 
-Object::Object(sf::Texture* texture, sf::Vector2f size,float Hight)
+Object::Object(sf::Texture* texture, sf::Vector2f size,int Hight, int x)
 {
 	body.setSize(size);
 	body.setTexture(texture);
 	body.setOrigin(body.getSize() / 2.0f);
-	Randdom(Hight);
+	Randdom(Hight,x);
 }
 
 Object::~Object()
@@ -21,17 +21,15 @@ void Object::Draw(sf::RenderWindow& window)
 {
 	window.draw(body);
 }
-void Object::Randdom(float Hight)
+void Object::Randdom(int Hight, int x)
 {
-	int x = rand() % 10;
-	
-	if (x<7)
+	if (Hight>7||x)
 	{
-		body.setPosition(2000.0f, 820.0f);
+		body.setPosition(2000.0f+x, 500.0f+Hight);
 	}
 	else
 	{
-		body.setPosition(2000.0f, 500.0f+ Hight);
+		body.setPosition(2000.0f+x, 820.0f);
 	}
 
 }

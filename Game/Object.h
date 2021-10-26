@@ -4,11 +4,11 @@
 class Object
 {
 public:
-	Object(sf::Texture* texture, sf::Vector2f size,float Hight);
+	Object(sf::Texture* texture, sf::Vector2f size,int Hight,int x);
 	~Object();
 	void Update( float speed, float deltaTime);
 	void Draw(sf::RenderWindow& window);
-	void Randdom(float Hight);
+	void Randdom(int Hight, int x);
 	Collider GetCollider() { return Collider(body); }
 	sf::RectangleShape body;
 private:

@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <string.h>
 #include "Enagy.h"
+#include <SFML\Audio.hpp>
 using namespace std;
 static const float VIEW_HEIGHT = 1080.0f;
 static const float VIEW_WIDTH = 1920.0f;
@@ -95,11 +96,26 @@ int main()
         quittt.loadFromFile("pic/quit.png");
     sf::Texture enagytt;
         enagytt.loadFromFile("pic/enagy.png");
+    sf::Texture m1;
+        m1.loadFromFile("pic/m1.png");
+    sf::Texture m2;
+        m2.loadFromFile("pic/m2.png");
+    sf::Texture s1;
+        s1.loadFromFile("pic/s1.png");
+    sf::Texture s2;
+        s2.loadFromFile("pic/s2.png");
     sf::Font font;
         font.loadFromFile("font/itim.ttf");
+    sf::Music music;
+        music.openFromFile("Sound/music.wav");
+        music.setVolume(40);
+        music.play();
+        music.setLoop(true);
+        
     sf::Clock clock;
     sf::Vector2f direction;
-    
+    int status_m = 1;
+    int status_s = 1;
     int status_game = 1;
     int pause = 0,go_stasus=0;
     int temp,temp_score;
@@ -117,6 +133,7 @@ int main()
     int countitem = 0;
     int onedead;
     int kmode;
+    int countmon = 0;
     string showscore;
     string name;
     vector <Score> Scores;
@@ -151,6 +168,10 @@ int main()
     Platform reds(&red, sf::Vector2f(1920.0f, 1080.0f), sf::Vector2f(1920.0f/2, 1080.0f/2));
     Platform resume(&resumett, sf::Vector2f(300.0f, 130.0f), sf::Vector2f(VIEW_WIDTH / 2.0f, 400.0f));
     Platform quit(&quittt, sf::Vector2f(300.0f, 130.0f), sf::Vector2f(VIEW_WIDTH / 2.0f, 600.0f));
+    Platform s_on(&s1, sf::Vector2f(75.0f, 75.0f), sf::Vector2f(1700.0f, 100.0f));
+    Platform s_off(&s2, sf::Vector2f(75.0f, 75.0f), sf::Vector2f(1700.0f, 100.0f));
+    Platform m_on(&m1, sf::Vector2f(75.0f, 75.0f), sf::Vector2f(1800.0f, 100.0f));
+    Platform m_off(&m2, sf::Vector2f(75.0f, 75.0f), sf::Vector2f(1800.0f, 100.0f));
     Platform blur(&blurtt, sf::Vector2f(VIEW_WIDTH, VIEW_HEIGHT), sf::Vector2f(VIEW_WIDTH / 2.0f, VIEW_HEIGHT / 2.0f));
     Platform Pause(&mainbg, sf::Vector2f(VIEW_WIDTH/2.0f, VIEW_HEIGHT / 2.0f), sf::Vector2f(VIEW_WIDTH / 2.0f, VIEW_HEIGHT / 2.0f));
     Death mondeath(&monterdeath, sf::Vector2f(160.0f, 200.0f), sf::Vector2u(7, 1), 0.15f);
@@ -158,6 +179,10 @@ int main()
     
     while (window.isOpen())
     {
+        if (status_m&& music.getStatus()==1)
+            music.play();
+        else if (!status_m && music.getStatus() == 2)
+            music.pause();
         sf::Event ev;
         while (window.pollEvent(ev))
         {
@@ -183,7 +208,6 @@ int main()
         deltaTime = clock.restart().asSeconds();
         if (deltaTime > 1.0f / 20.0f)
                 deltaTime = 1.0f / 20.0f;
-       
         if (status_game == 1)
         {
             stand.UpdateP(deltaTime);
@@ -198,6 +222,7 @@ int main()
             countitem = 0;
             onedead = 0;
             pause = 0;
+            countmon = 0;
             player.setpositison(sf::Vector2f(200.0f, 800.0f));
             playerSlide.setpositison(sf::Vector2f(200.0f, 1500.0f));
             int x = sf::Mouse::getPosition().x;
@@ -211,6 +236,14 @@ int main()
                 status_game = 4;
             else if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && x >= 255.0f && x <= 645.0f && y >= 715.0f && y <= 885.0f)
                 window.close();
+            else if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && x >= 1662.5f && x <= 1737.5f && y >= 62.5f && y <= 137.5f)
+            {
+                status_s = !status_s;
+            }
+            else if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && x >= 1762.5f && x <= 1837.5f && y >= 62.5f && y <= 137.5f)
+            {
+                status_m = !status_m;
+            }
             while (sf::Mouse::isButtonPressed(sf::Mouse::Left));
         }
         if (status_game == 2)
@@ -263,7 +296,7 @@ int main()
                 char temp[100];
                 strcpy(temp, name.c_str());
                 if(strlen(temp)==0)
-                    strcpy(temp,"unknow");
+                    strcpy(temp,"anonymous");
                 updatascore(temp, temp_score);
                 //printf("%d", temp_score);
                 status_game = 1;
@@ -325,33 +358,54 @@ int main()
             survivalTime -= 20.0f;
             energy-=5;
         }
-        //สุ่มเกิดอุปสรรค
-        if (!pause && energy > 0 && EnemyTime >= 5.0f)
-        {
-            EnemyTime -= 5.0f;
-            enemys.push_back(Object(&monter, sf::Vector2f(160.0f, 200.0f), 150.0f));
-            sumTime -= 0.5f;
-        }
-        //สุ่มเกิดของ
-        else if (!pause && energy > 0 && sumTime >= 0.5f&& EnemyTime <= 4.75f&& EnemyTime >= 0.25)
+        //สุ่มเกิด
+        else if (!pause && energy > 0 && sumTime >= 0.5f)
         {
             sumTime -= 0.5f;
-            int x = rand() % 11;
+            int x = rand() % 15;
+            int y = rand() % 10;
             if (x < 6)
-                coinsS.push_back(Object(&s, sf::Vector2f(50.0f, 50.0f), 0.0f));
+                coinsS.push_back(Object(&s, sf::Vector2f(50.0f, 50.0f), y,0));
             else if (x < 9)
-                coinsM.push_back(Object(&m, sf::Vector2f(75.0f, 75.0f), 0.0f));
+                coinsM.push_back(Object(&m, sf::Vector2f(75.0f, 75.0f), y, 0));
             else if (x < 10)
-                coinsL.push_back(Object(&l, sf::Vector2f(100.0f, 100.0f), 0.0f));
-            else if (countitem >= 40)
+                coinsL.push_back(Object(&l, sf::Vector2f(100.0f, 100.0f), y, 0));
+            else if (countitem >= 40 && x==10)
             {
-                item1.push_back(Object(&it1, sf::Vector2f(100.0f, 100.0f), 0.0f));
+                item1.push_back(Object(&it1, sf::Vector2f(100.0f, 100.0f), y, 0));
                 countitem -= 40;
             }
+            else if (EnemyTime >= 5.0f && x > 10)
+            {
+                EnemyTime -= 5.0f;
+                countmon++;
+                int r = rand() % 5;
+                if (r == 0)
+                    enemys.push_back(Object(&monter, sf::Vector2f(160.0f, 200.0f), 150, 1));
+                else if (r == 1)
+                    enemys.push_back(Object(&monter, sf::Vector2f(160.0f, 200.0f), 320, 1));
+                else if (r == 2 && countmon > 10)
+                {
+                    enemys.push_back(Object(&monter, sf::Vector2f(160.0f, 200.0f), 150, 250));
+                    enemys.push_back(Object(&monter, sf::Vector2f(160.0f, 200.0f), 150, 1));
+                }
+                else if (r == 3 && countmon > 10)
+                {
+                    enemys.push_back(Object(&monter, sf::Vector2f(160.0f, 200.0f), 320, 250));
+                    enemys.push_back(Object(&monter, sf::Vector2f(160.0f, 200.0f), 320, 1));
+                }
+                else if (r == 4 && countmon > 20)
+                {
+                    enemys.push_back(Object(&monter, sf::Vector2f(160.0f, 200.0f), 350, 1));
+                    enemys.push_back(Object(&monter, sf::Vector2f(160.0f, 200.0f), 225, 1));
+                }
+                else
+                    enemys.push_back(Object(&monter, sf::Vector2f(160.0f, 200.0f), 150, 1));
+            }
             else
-                coinsS.push_back(Object(&s, sf::Vector2f(50.0f, 50.0f), 0.0f));
-            if (acc <= 5000)
-                acc += 10;
+                coinsS.push_back(Object(&s, sf::Vector2f(50.0f, 50.0f), y, 0));
+            if (acc <= 2000)
+                acc += 5;
             countitem++;
         }
         //เพิ้มคะแนนต่อวิ
@@ -527,21 +581,29 @@ int main()
        window.clear();
        if (status_game == 1)
        {
-           menu.Draw(window);
-           play.Draw(window);
-           scoreB.Draw(window);
-           exit.Draw(window);
-           NG.Draw(window);
-           stand.Draw(window);
+            menu.Draw(window);
+            play.Draw(window);
+            scoreB.Draw(window);
+            exit.Draw(window);
+            NG.Draw(window);
+            stand.Draw(window);
+            if(status_s)
+                s_on.Draw(window);
+            else
+                s_off.Draw(window);
+            if(status_m)
+                m_on.Draw(window);
+            else
+                m_off.Draw(window);
        }
        else if (status_game == 2)
        {
-           menu.Draw(window);
-           easy.Draw(window);
-           normal.Draw(window);
-           hard.Draw(window);
-           back.Draw(window);
-           monmenu.Draw(window);
+            menu.Draw(window);
+            easy.Draw(window);
+            normal.Draw(window);
+            hard.Draw(window);
+            back.Draw(window);
+            monmenu.Draw(window);
        }
        else if (status_game == 3 )//ปริ้นเกม
        {  
